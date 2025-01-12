@@ -1,0 +1,8 @@
+#BASE DE DATOS POSTGRES
+sudo -u postgres psql
+psql -U postgres -W     # inicia sesion en postgres
+
+\dt               #Listar tablas
+
+#Ejecucion
+air     #Inicia liveServer
