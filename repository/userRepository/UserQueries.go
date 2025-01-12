@@ -1,7 +1,8 @@
-package users
+package userRepository
 
 func insertUserPSQLQuery() string {
-	return "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING user_id, username, email, registerDate"
+	return "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING user_id, username, email, " +
+		"register_date"
 }
 func getUserByEmailPSQLQuery() string {
 	return "SELECT user_id, username, email, registerDate FROM users WHERE email = $1"

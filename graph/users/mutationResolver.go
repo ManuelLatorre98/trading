@@ -1,15 +1,14 @@
 package users
 
-import (
-	"database/sql"
+/*import (
+	"context"
+	"manulatorre98/trading/graph"
+	"manulatorre98/trading/graph/model"
 )
 
-type UserMutationResolver struct{ DB *sql.DB }
-
-func (r *UserMutationResolver) CreateUser(username string, email string, password string) (*User, error) {
-
-	var newUser *User
-	err := r.DB.QueryRow(insertUserPSQLQuery(), username, email, password).Scan(
+func CreateUser(ctx context.Context, input *model.UserInput, r graph.MutationResolver) (*UserModel, error) {
+	var newUser *UserModel
+	err := r.DB.QueryRow(insertUserPSQLQuery(), input.Username, input.Email, input.Password).Scan(
 		&newUser.userId,
 		&newUser.username,
 		&newUser.email,
@@ -18,4 +17,4 @@ func (r *UserMutationResolver) CreateUser(username string, email string, passwor
 		return nil, err
 	}
 	return newUser, nil
-}
+}*/

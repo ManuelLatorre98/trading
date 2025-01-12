@@ -1,6 +1,6 @@
 package userController
 
-import (
+/*import (
 	"github.com/gin-gonic/gin"
 	"manulatorre98/trading/middlewares"
 	"manulatorre98/trading/model"
@@ -55,4 +55,4 @@ func (c *UsuarioController) GetUser(ctx *gin.Context) {
 		return
 	}
 	ctx.IndentedJSON(http.StatusOK, user)
-}
+}*/

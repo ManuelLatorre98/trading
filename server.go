@@ -1,34 +1,39 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
+	"log"
+	"manulatorre98/trading/graph"
+	"manulatorre98/trading/repository"
+	"manulatorre98/trading/repository/userRepository"
+	"net/http"
+	"os"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/vektah/gqlparser/v2/ast"
-	"log"
-	"manulatorre98/trading/graph"
-	"manulatorre98/trading/repository"
-	"net/http"
-	"os"
 )
 
 const defaultPort = "8080"
 
 func main() {
+	var err error
+	err = godotenv.Load()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
+
 	// Initialize database
 	db, err := repository.PostgresDbInit()
 	if err != nil {
-		log.Fatal("Error connecting to database: ", err)
+		log.Fatal("Error connecting to database")
 	}
-
-	resolver := graph.NewUserResolver(db)
-	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: resolver}))
+	var userRepo userRepository.UserRepository = userRepository.NewUserPsqlRepository(db)
+	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{UserRepository: userRepo}}))
 
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
