@@ -21,3 +21,20 @@ input NewTodo {
 type Mutation {
   createTodo(input: NewTodo!): Todo!
 }
+
+# DIRECTIVES TO VALIDATE INPUTS
+directive @goField(forceResolver: String, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @binding(constraint: String!) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+input InsertUser {
+  name: String! @binding(constraint: "required,max=20")
+  email: String! @binding(constraint: "required,email")
+  age: Int! @binding(constraint: "gte=0,lte=128")
+  password: String! @binding(constraint: "required,min=8,max=128,pattern=^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")
+}
+
+
+input UserInput {
+  username: String!
+  email: String!
+  password: String!
+}
