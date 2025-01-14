@@ -5,11 +5,11 @@ type User {
 	registerDate: String
 }
 
-input UserInput {
-	username: String!
-	email: String!
-	password: String!
-}
+#input UserInput {
+#	username: String!
+#	email: String!
+#	password: String!
+#}
 extend type Query {
 	userById(id: ID!):User
 	userByEmail(email: String!):User
@@ -17,4 +17,12 @@ extend type Query {
 
 extend type Mutation {
 	createUser(input: UserInput): User
+}
+# DIRECTIVES TO VALIDATE INPUTS
+directive @goField(forceResolver: String, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @binding(constraint: String!) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+input UserInput {
+	username: String! @binding(constraint: "required,min=4,max=20")
+	email: String! @binding(constraint: "required,email")
+	password: String! @binding(constraint: "required,min=8,max=128")
 }

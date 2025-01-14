@@ -13,7 +13,6 @@ import (
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input *model.UserInput) (*model.User, error) {
 	return r.UserRepository.InsertUser(input)
-
 }
 
 // UserByID is the resolver for the userById field.
@@ -25,3 +24,12 @@ func (r *queryResolver) UserByID(ctx context.Context, id string) (*model.User, e
 func (r *queryResolver) UserByEmail(ctx context.Context, email string) (*model.User, error) {
 	panic(fmt.Errorf("not implemented: UserByEmail - userByEmail"))
 }
+
+// Mutation returns MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
+
+// Query returns QueryResolver implementation.
+func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+
+type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }

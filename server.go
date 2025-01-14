@@ -4,6 +4,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"manulatorre98/trading/graph"
+	"manulatorre98/trading/graph/directives"
 	"manulatorre98/trading/repository"
 	"manulatorre98/trading/repository/userRepository"
 	"net/http"
@@ -19,6 +20,28 @@ import (
 
 const defaultPort = "8080"
 
+func init() {
+	defaultTranslation()
+}
+
+func defaultTranslation() {
+	/*directives.ValidateAddTranslation("required", " is required")
+	directives.ValidateAddTranslation("email", " must be a valid email")
+	directives.ValidateAddTranslation("min", " must have at least %s characters")
+	directives.ValidateAddTranslation("max", " must have at most %s characters")
+	directives.ValidateAddTranslation("unique", " must be unique")*/
+
+	directives.ValidateAddTranslation("required", "The field %s is required")
+	directives.ValidateAddTranslation("email", "The field %s must be a valid email")
+	directives.ValidateAddTranslation("min", "The field %s must have at least %s characters")
+	directives.ValidateAddTranslation("max", "The field %s must have at most %s characters")
+	directives.ValidateAddTranslation("unique", "The field %s must be unique")
+	/*directives.ValidateAddTranslation("required", " is required")
+	directives.ValidateAddTranslation("email", " must be a valid email")
+	directives.ValidateAddTranslation("min", " to short")
+	directives.ValidateAddTranslation("max", " to long")
+	directives.ValidateAddTranslation("unique", " must be unique")*/
+}
 func main() {
 	var err error
 	err = godotenv.Load()
@@ -33,7 +56,10 @@ func main() {
 		log.Fatal("Error connecting to database")
 	}
 	var userRepo userRepository.UserRepository = userRepository.NewUserPsqlRepository(db)
-	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{UserRepository: userRepo}}))
+
+	c := graph.Config{Resolvers: &graph.Resolver{UserRepository: userRepo}}
+	c.Directives.Binding = directives.Binding
+	srv := handler.New(graph.NewExecutableSchema(c))
 
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.GET{})
