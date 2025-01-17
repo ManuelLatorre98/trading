@@ -25,17 +25,17 @@ func init() {
 }
 
 func defaultTranslation() {
-	/*directives.ValidateAddTranslation("required", " is required")
+	directives.ValidateAddTranslation("required", " is required")
 	directives.ValidateAddTranslation("email", " must be a valid email")
 	directives.ValidateAddTranslation("min", " must have at least %s characters")
 	directives.ValidateAddTranslation("max", " must have at most %s characters")
-	directives.ValidateAddTranslation("unique", " must be unique")*/
+	directives.ValidateAddTranslation("unique", " already exists")
 
-	directives.ValidateAddTranslation("required", "The field %s is required")
+	/*directives.ValidateAddTranslation("required", "The field %s is required")
 	directives.ValidateAddTranslation("email", "The field %s must be a valid email")
 	directives.ValidateAddTranslation("min", "The field %s must have at least %s characters")
 	directives.ValidateAddTranslation("max", "The field %s must have at most %s characters")
-	directives.ValidateAddTranslation("unique", "The field %s must be unique")
+	directives.ValidateAddTranslation("unique", "The field %s must be unique")*/
 	/*directives.ValidateAddTranslation("required", " is required")
 	directives.ValidateAddTranslation("email", " must be a valid email")
 	directives.ValidateAddTranslation("min", " to short")

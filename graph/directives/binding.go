@@ -30,21 +30,25 @@ func Binding(ctx context.Context, obj interface{}, next graphql.Resolver, constr
 	}
 
 	err = validate.Var(val, constraint)
+
 	if err != nil {
+		fieldName := *graphql.GetPathContext(ctx).Field
 		validationErrors := err.(validator.ValidationErrors)
-		transErr := fmt.Errorf("%v", validationErrors[0].Translate(trans))
+		transErr := fmt.Errorf("%s%+v", fieldName, validationErrors[0].Translate(trans))
 		return val, transErr
 	}
 	return val, nil
 }
-
 func ValidateAddTranslation(tag string, message string) {
 	validate.RegisterTranslation(tag, trans, func(ut ut.Translator) error {
 		return ut.Add(tag, message, true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
+		fmt.Println("fePARAM", fe.Param() == "")
+		fmt.Println("feField", fe.Field())
+
 		if fe.Param() != "" {
-			return fmt.Sprintf(message, fe.Field(), fe.Param())
+			message = fmt.Sprintf(message, fe.Param())
 		}
-		return fmt.Sprintf(message, fe.Field())
+		return message
 	})
 }
