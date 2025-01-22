@@ -7,11 +7,28 @@ package graph
 import (
 	"context"
 	"fmt"
+	"manulatorre98/trading/customErrors"
 	"manulatorre98/trading/graph/model"
 )
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input *model.UserInput) (*model.User, error) {
+	_, err := r.UserRepository.GetUserByEmail(input.Email)
+	if err != nil && err.Error() != customErrors.ErrUserEmailNotFound {
+		return nil, fmt.Errorf(customErrors.ErrInternalServer)
+	}
+	if err == nil {
+		return nil, fmt.Errorf(customErrors.ErrUserEmailAlreadyExists)
+	}
+
+	_, err = r.UserRepository.GetUserByUserName(input.Username)
+	if err != nil && err.Error() != customErrors.ErrUserNameNotFound {
+		return nil, fmt.Errorf(customErrors.ErrInternalServer)
+	}
+	if err == nil {
+		return nil, fmt.Errorf(customErrors.ErrUserNameAlreadyExists)
+	}
+
 	return r.UserRepository.InsertUser(input)
 }
 

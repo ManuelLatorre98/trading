@@ -6,3 +6,9 @@ psql -U postgres -W     # inicia sesion en postgres
 
 #Ejecucion
 air     #Inicia liveServer
+
+
+#GO
+go generate ./... #Generate the schema
+go run server.go
+

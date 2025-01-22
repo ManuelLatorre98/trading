@@ -39,13 +39,11 @@ func Binding(ctx context.Context, obj interface{}, next graphql.Resolver, constr
 	}
 	return val, nil
 }
+
 func ValidateAddTranslation(tag string, message string) {
 	validate.RegisterTranslation(tag, trans, func(ut ut.Translator) error {
 		return ut.Add(tag, message, true)
 	}, func(ut ut.Translator, fe validator.FieldError) string {
-		fmt.Println("fePARAM", fe.Param() == "")
-		fmt.Println("feField", fe.Field())
-
 		if fe.Param() != "" {
 			message = fmt.Sprintf(message, fe.Param())
 		}

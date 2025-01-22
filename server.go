@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/joho/godotenv"
 	"log"
+	"manulatorre98/trading/customErrors"
 	"manulatorre98/trading/graph"
 	"manulatorre98/trading/graph/directives"
 	"manulatorre98/trading/repository"
@@ -21,27 +22,9 @@ import (
 const defaultPort = "8080"
 
 func init() {
-	defaultTranslation()
+	customErrors.DefaultTranslation()
 }
 
-func defaultTranslation() {
-	directives.ValidateAddTranslation("required", " is required")
-	directives.ValidateAddTranslation("email", " must be a valid email")
-	directives.ValidateAddTranslation("min", " must have at least %s characters")
-	directives.ValidateAddTranslation("max", " must have at most %s characters")
-	directives.ValidateAddTranslation("unique", " already exists")
-
-	/*directives.ValidateAddTranslation("required", "The field %s is required")
-	directives.ValidateAddTranslation("email", "The field %s must be a valid email")
-	directives.ValidateAddTranslation("min", "The field %s must have at least %s characters")
-	directives.ValidateAddTranslation("max", "The field %s must have at most %s characters")
-	directives.ValidateAddTranslation("unique", "The field %s must be unique")*/
-	/*directives.ValidateAddTranslation("required", " is required")
-	directives.ValidateAddTranslation("email", " must be a valid email")
-	directives.ValidateAddTranslation("min", " to short")
-	directives.ValidateAddTranslation("max", " to long")
-	directives.ValidateAddTranslation("unique", " must be unique")*/
-}
 func main() {
 	var err error
 	err = godotenv.Load()
