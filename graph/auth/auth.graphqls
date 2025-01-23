@@ -1,0 +1,24 @@
+type AuthPayload {
+	token: String!
+	user: User!
+}
+
+extend type Mutation {
+	signUp(input: SignUpInput): User
+	login(input: LoginInput): AuthPayload
+}
+
+# DIRECTIVES TO VALIDATE INPUTS
+directive @goField(forceResolver: String, name: String) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @binding(constraint: String!) on INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+input SignUpInput {
+	username: String! @binding(constraint: "required,min=4,max=20")
+	email: String! @binding(constraint: "required,email")
+	password: String! @binding(constraint: "required,min=8,max=128")
+}
+
+input LoginInput {
+	email: String! @binding(constraint: "required,email")
+	password: String! @binding(constraint: "required,min=8,max=128")
+}
+

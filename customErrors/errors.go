@@ -9,6 +9,8 @@ const (
 	ErrUserNameAlreadyExists  = "username already exists"
 	ErrUserIdNotFound         = "user id not found"
 	ErrInternalServer         = "internal server error"
+
+	ErrEmailOrPassWrong = "Email or password is wrong"
 )
 
 func DefaultTranslation() {

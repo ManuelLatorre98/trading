@@ -15,3 +15,7 @@ func getUserByUserNamePSQLQuery() string {
 func getUserByIdPSQLQuery() string {
 	return "SELECT user_id, username, email, register_date FROM users WHERE user_id = $1"
 }
+
+func getEmailPasswordPSQLQuery() string {
+	return "SELECT password FROM users WHERE email = $1"
+}

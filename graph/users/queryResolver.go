@@ -1,14 +1,6 @@
 package users
 
-import (
-	"context"
-	"database/sql"
-	"fmt"
-	"manulatorre98/trading/graph/model"
-	"manulatorre98/trading/repository/userRepository"
-)
-
-type UserQueryResolver struct {
+/*type UserQueryResolver struct {
 	DB *sql.DB
 }
 type QueryResolver struct{ DB *sql.DB }
@@ -52,3 +44,4 @@ func (r *UserResolver) Email(ctx context.Context, obj *model.UserModel) (*string
 func (r *UserResolver) RegisterDate(ctx context.Context, obj *model.UserModel) (*string, error) {
 	panic(fmt.Errorf("not implemented: RegisterDate - registerDate"))
 }
+*/

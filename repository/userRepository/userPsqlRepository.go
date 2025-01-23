@@ -16,7 +16,7 @@ func NewUserPsqlRepository(db *sql.DB) *UserPsqlRepository {
 	return &UserPsqlRepository{db: db}
 }
 
-func (r *UserPsqlRepository) InsertUser(user *model.UserInput) (*model.User, error) {
+func (r *UserPsqlRepository) InsertUser(user *model.SignUpInput) (*model.User, error) {
 	var newUser model.User
 	err := r.db.QueryRow(insertUserPSQLQuery(), user.Username, user.Email, user.Password).Scan(
 		&newUser.UserID,
@@ -63,4 +63,17 @@ func (r *UserPsqlRepository) GetUserById(userId string) (*model.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (r *UserPsqlRepository) GetPassword(email string) (*string, error) {
+	row := r.db.QueryRow(getEmailPasswordPSQLQuery(), email)
+	var pass string
+	err := row.Scan(&pass)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf(customErrors.ErrEmailOrPassWrong)
+		}
+		return nil, err
+	}
+	return &pass, nil
 }
