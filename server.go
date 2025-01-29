@@ -7,6 +7,7 @@ import (
 	"manulatorre98/trading/graph"
 	"manulatorre98/trading/graph/directives"
 	"manulatorre98/trading/repository"
+	"manulatorre98/trading/repository/dolarRepository"
 	"manulatorre98/trading/repository/userRepository"
 	"net/http"
 	"os"
@@ -39,8 +40,9 @@ func main() {
 		log.Fatal("Error connecting to database")
 	}
 	var userRepo userRepository.UserRepository = userRepository.NewUserPsqlRepository(db)
+	var dolarRepo dolarRepository.DolarRepository = dolarRepository.NewDolarPsqlRepository(db)
 
-	c := graph.Config{Resolvers: &graph.Resolver{UserRepository: userRepo}}
+	c := graph.Config{Resolvers: &graph.Resolver{UserRepository: userRepo, DolarRepository: dolarRepo}}
 	c.Directives.Binding = directives.Binding
 	srv := handler.New(graph.NewExecutableSchema(c))
 

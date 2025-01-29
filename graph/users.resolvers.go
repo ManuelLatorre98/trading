@@ -6,18 +6,18 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"manulatorre98/trading/graph/model"
+	"manulatorre98/trading/graph/users"
 )
 
 // UserByID is the resolver for the userById field.
 func (r *queryResolver) UserByID(ctx context.Context, id string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: UserByID - userById"))
+	return users.UserByIDResolver(r.UserRepository, id)
 }
 
 // UserByEmail is the resolver for the userByEmail field.
 func (r *queryResolver) UserByEmail(ctx context.Context, email string) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: UserByEmail - userByEmail"))
+	return users.UserByEmailResolver(r.UserRepository, email)
 }
 
 // Query returns QueryResolver implementation.

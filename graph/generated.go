@@ -53,14 +53,25 @@ type ComplexityRoot struct {
 		User  func(childComplexity int) int
 	}
 
+	Dolar struct {
+		DolarDate     func(childComplexity int) int
+		PriceBlue     func(childComplexity int) int
+		PriceMep      func(childComplexity int) int
+		PriceOfficial func(childComplexity int) int
+	}
+
 	Mutation struct {
-		Login  func(childComplexity int, input *model.LoginInput) int
-		SignUp func(childComplexity int, input *model.SignUpInput) int
+		CreateDolar func(childComplexity int) int
+		Login       func(childComplexity int, input *model.LoginInput) int
+		SignUp      func(childComplexity int, input *model.SignUpInput) int
 	}
 
 	Query struct {
-		UserByEmail func(childComplexity int, email string) int
-		UserByID    func(childComplexity int, id string) int
+		GetDolar            func(childComplexity int, date string) int
+		GetDolarInDateRange func(childComplexity int, startDate string, endDate string) int
+		GetHistoricalDolar  func(childComplexity int) int
+		UserByEmail         func(childComplexity int, email string) int
+		UserByID            func(childComplexity int, id string) int
 	}
 
 	User struct {
@@ -74,10 +85,14 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	SignUp(ctx context.Context, input *model.SignUpInput) (*model.User, error)
 	Login(ctx context.Context, input *model.LoginInput) (*model.AuthPayload, error)
+	CreateDolar(ctx context.Context) (*model.Dolar, error)
 }
 type QueryResolver interface {
 	UserByID(ctx context.Context, id string) (*model.User, error)
 	UserByEmail(ctx context.Context, email string) (*model.User, error)
+	GetDolar(ctx context.Context, date string) (*model.Dolar, error)
+	GetDolarInDateRange(ctx context.Context, startDate string, endDate string) ([]*model.Dolar, error)
+	GetHistoricalDolar(ctx context.Context) ([]*model.Dolar, error)
 }
 
 type executableSchema struct {
@@ -113,6 +128,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AuthPayload.User(childComplexity), true
 
+	case "Dolar.dolar_date":
+		if e.complexity.Dolar.DolarDate == nil {
+			break
+		}
+
+		return e.complexity.Dolar.DolarDate(childComplexity), true
+
+	case "Dolar.price_blue":
+		if e.complexity.Dolar.PriceBlue == nil {
+			break
+		}
+
+		return e.complexity.Dolar.PriceBlue(childComplexity), true
+
+	case "Dolar.price_mep":
+		if e.complexity.Dolar.PriceMep == nil {
+			break
+		}
+
+		return e.complexity.Dolar.PriceMep(childComplexity), true
+
+	case "Dolar.price_official":
+		if e.complexity.Dolar.PriceOfficial == nil {
+			break
+		}
+
+		return e.complexity.Dolar.PriceOfficial(childComplexity), true
+
+	case "Mutation.createDolar":
+		if e.complexity.Mutation.CreateDolar == nil {
+			break
+		}
+
+		return e.complexity.Mutation.CreateDolar(childComplexity), true
+
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
 			break
@@ -136,6 +186,37 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SignUp(childComplexity, args["input"].(*model.SignUpInput)), true
+
+	case "Query.getDolar":
+		if e.complexity.Query.GetDolar == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getDolar_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetDolar(childComplexity, args["date"].(string)), true
+
+	case "Query.getDolarInDateRange":
+		if e.complexity.Query.GetDolarInDateRange == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getDolarInDateRange_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetDolarInDateRange(childComplexity, args["startDate"].(string), args["endDate"].(string)), true
+
+	case "Query.getHistoricalDolar":
+		if e.complexity.Query.GetHistoricalDolar == nil {
+			break
+		}
+
+		return e.complexity.Query.GetHistoricalDolar(childComplexity), true
 
 	case "Query.userByEmail":
 		if e.complexity.Query.UserByEmail == nil {
@@ -295,7 +376,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "users/users.graphqls" "auth/auth.graphqls"
+//go:embed "users/users.graphqls" "auth/auth.graphqls" "dolars/dolars.graphqls"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -309,6 +390,7 @@ func sourceData(filename string) string {
 var sources = []*ast.Source{
 	{Name: "users/users.graphqls", Input: sourceData("users/users.graphqls"), BuiltIn: false},
 	{Name: "auth/auth.graphqls", Input: sourceData("auth/auth.graphqls"), BuiltIn: false},
+	{Name: "dolars/dolars.graphqls", Input: sourceData("dolars/dolars.graphqls"), BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -406,6 +488,70 @@ func (ec *executionContext) field_Query___type_argsName(
 ) (string, error) {
 	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 	if tmp, ok := rawArgs["name"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getDolarInDateRange_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_getDolarInDateRange_argsStartDate(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["startDate"] = arg0
+	arg1, err := ec.field_Query_getDolarInDateRange_argsEndDate(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["endDate"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Query_getDolarInDateRange_argsStartDate(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("startDate"))
+	if tmp, ok := rawArgs["startDate"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getDolarInDateRange_argsEndDate(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("endDate"))
+	if tmp, ok := rawArgs["endDate"]; ok {
+		return ec.unmarshalNString2string(ctx, tmp)
+	}
+
+	var zeroVal string
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_getDolar_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_getDolar_argsDate(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["date"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_getDolar_argsDate(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (string, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
+	if tmp, ok := rawArgs["date"]; ok {
 		return ec.unmarshalNString2string(ctx, tmp)
 	}
 
@@ -534,14 +680,11 @@ func (ec *executionContext) _AuthPayload_token(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AuthPayload_token(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -578,14 +721,11 @@ func (ec *executionContext) _AuthPayload_user(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUser2ᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -606,6 +746,170 @@ func (ec *executionContext) fieldContext_AuthPayload_user(_ context.Context, fie
 				return ec.fieldContext_User_registerDate(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Dolar_dolar_date(ctx context.Context, field graphql.CollectedField, obj *model.Dolar) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Dolar_dolar_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DolarDate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Dolar_dolar_date(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Dolar",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Dolar_price_blue(ctx context.Context, field graphql.CollectedField, obj *model.Dolar) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Dolar_price_blue(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PriceBlue, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Dolar_price_blue(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Dolar",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Dolar_price_official(ctx context.Context, field graphql.CollectedField, obj *model.Dolar) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Dolar_price_official(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PriceOfficial, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Dolar_price_official(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Dolar",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Dolar_price_mep(ctx context.Context, field graphql.CollectedField, obj *model.Dolar) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Dolar_price_mep(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PriceMep, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Dolar_price_mep(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Dolar",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -731,6 +1035,57 @@ func (ec *executionContext) fieldContext_Mutation_login(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createDolar(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createDolar(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateDolar(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Dolar)
+	fc.Result = res
+	return ec.marshalODolar2ᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐDolar(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createDolar(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "dolar_date":
+				return ec.fieldContext_Dolar_dolar_date(ctx, field)
+			case "price_blue":
+				return ec.fieldContext_Dolar_price_blue(ctx, field)
+			case "price_official":
+				return ec.fieldContext_Dolar_price_official(ctx, field)
+			case "price_mep":
+				return ec.fieldContext_Dolar_price_mep(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Dolar", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_userById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_userById(ctx, field)
 	if err != nil {
@@ -851,6 +1206,181 @@ func (ec *executionContext) fieldContext_Query_userByEmail(ctx context.Context, 
 	if fc.Args, err = ec.field_Query_userByEmail_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getDolar(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getDolar(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetDolar(rctx, fc.Args["date"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Dolar)
+	fc.Result = res
+	return ec.marshalODolar2ᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐDolar(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getDolar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "dolar_date":
+				return ec.fieldContext_Dolar_dolar_date(ctx, field)
+			case "price_blue":
+				return ec.fieldContext_Dolar_price_blue(ctx, field)
+			case "price_official":
+				return ec.fieldContext_Dolar_price_official(ctx, field)
+			case "price_mep":
+				return ec.fieldContext_Dolar_price_mep(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Dolar", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getDolar_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getDolarInDateRange(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getDolarInDateRange(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetDolarInDateRange(rctx, fc.Args["startDate"].(string), fc.Args["endDate"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Dolar)
+	fc.Result = res
+	return ec.marshalODolar2ᚕᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐDolar(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getDolarInDateRange(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "dolar_date":
+				return ec.fieldContext_Dolar_dolar_date(ctx, field)
+			case "price_blue":
+				return ec.fieldContext_Dolar_price_blue(ctx, field)
+			case "price_official":
+				return ec.fieldContext_Dolar_price_official(ctx, field)
+			case "price_mep":
+				return ec.fieldContext_Dolar_price_mep(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Dolar", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getDolarInDateRange_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getHistoricalDolar(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getHistoricalDolar(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetHistoricalDolar(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Dolar)
+	fc.Result = res
+	return ec.marshalODolar2ᚕᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐDolar(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getHistoricalDolar(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "dolar_date":
+				return ec.fieldContext_Dolar_dolar_date(ctx, field)
+			case "price_blue":
+				return ec.fieldContext_Dolar_price_blue(ctx, field)
+			case "price_official":
+				return ec.fieldContext_Dolar_price_official(ctx, field)
+			case "price_mep":
+				return ec.fieldContext_Dolar_price_mep(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Dolar", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -3117,14 +3647,50 @@ func (ec *executionContext) _AuthPayload(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = graphql.MarshalString("AuthPayload")
 		case "token":
 			out.Values[i] = ec._AuthPayload_token(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "user":
 			out.Values[i] = ec._AuthPayload_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var dolarImplementors = []string{"Dolar"}
+
+func (ec *executionContext) _Dolar(ctx context.Context, sel ast.SelectionSet, obj *model.Dolar) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dolarImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Dolar")
+		case "dolar_date":
+			out.Values[i] = ec._Dolar_dolar_date(ctx, field, obj)
+		case "price_blue":
+			out.Values[i] = ec._Dolar_price_blue(ctx, field, obj)
+		case "price_official":
+			out.Values[i] = ec._Dolar_price_official(ctx, field, obj)
+		case "price_mep":
+			out.Values[i] = ec._Dolar_price_mep(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3174,6 +3740,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "login":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_login(ctx, field)
+			})
+		case "createDolar":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createDolar(ctx, field)
 			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -3246,6 +3816,63 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_userByEmail(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getDolar":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getDolar(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getDolarInDateRange":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getDolarInDateRange(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getHistoricalDolar":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getHistoricalDolar(ctx, field)
 				return res
 			}
 
@@ -3699,16 +4326,6 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNUser2ᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -3993,6 +4610,70 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	}
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) marshalODolar2ᚕᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐDolar(ctx context.Context, sel ast.SelectionSet, v []*model.Dolar) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalODolar2ᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐDolar(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalODolar2ᚖmanulatorre98ᚋtradingᚋgraphᚋmodelᚐDolar(ctx context.Context, sel ast.SelectionSet, v *model.Dolar) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Dolar(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v any) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v any) (*string, error) {
