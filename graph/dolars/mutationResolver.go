@@ -3,15 +3,18 @@ package dolars
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"log"
 	"manulatorre98/trading/graph/model"
 	"manulatorre98/trading/repository/dolarRepository"
 	"net/http"
-	"strconv"
-	"strings"
 )
 
+type DolarScraped struct {
+	Compra string `json:"compra"`
+	Venta  string `json:"venta"`
+}
+
 func scrapPage(url string) {
+	dolarMap := make(map[string]DolarScraped)
 	res, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err)
@@ -26,41 +29,39 @@ func scrapPage(url string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	var dolar model.DolarInput
-
-	// Find the elements that contain the dollar values
+	validTitles := []string{
+		"Dólar blue",
+		"Dólar Oficial",
+		"Dólar MEP/Bolsa",
+		"Contado con liqui",
+		"Dólar cripto",
+		"Dólar Tarjeta",
+	}
+	// Buscar los elementos que contienen los valores del dólar
 	doc.Find(".tile").Each(func(i int, s *goquery.Selection) {
-		title := s.Find("h5").Text()
-		value := s.Find(".val").Text()
-
-		// Check if value is empty
-		if value == "" {
-			log.Printf("Empty value for: %s", title)
-			return
-		}
-
-		// Clean the value and parse to float64
-		cleanedValue := strings.ReplaceAll(strings.ReplaceAll(value, "$", ""), ",", "")
-		floatValue, err := strconv.ParseFloat(cleanedValue, 32)
-		if err != nil {
-			log.Printf("Error parsing value for %s: %s", title, err)
-			return
-		}
-
-		// Assign the parsed value to the appropriate field
-		switch title {
-		case "Dólar Blue":
-			dolar.PriceBlue = float32(floatValue)
-		case "Dólar Oficial":
-			dolar.PriceOfficial = float32(floatValue)
-		case "Dólar MEP":
-			dolar.PriceMep = float32(floatValue)
+		title := s.Find(".title").Text()
+		compra := s.Find(".compra .val").Text()
+		venta := s.Find(".venta .val").Text()
+		// Filtrar solo los títulos específicos
+		if isValidTitle(title, validTitles) {
+			dolarMap[title] = DolarScraped{
+				Compra: compra,
+				Venta:  venta,
+			}
 		}
 	})
 
 	// Print the structured data
-	fmt.Printf("Dolar data: %+v\n", dolar)
+	fmt.Printf("Dolar data: %+v\n", dolarMap)
+}
+
+func isValidTitle(title string, validTitles []string) bool {
+	for _, validTitle := range validTitles {
+		if title == validTitle {
+			return true
+		}
+	}
+	return false
 }
 func CreateDolarResolver(repo dolarRepository.DolarRepository) (*model.Dolar, error) {
 	scrapPage("https://www.dolarhoy.com/")
