@@ -12,21 +12,21 @@ import (
 )
 
 // CreateDolar is the resolver for the createDolar field.
-func (r *mutationResolver) CreateDolar(ctx context.Context) (*model.Dolar, error) {
-	return dolars.CreateDolarResolver(r.DolarRepository)
+func (r *mutationResolver) CreateDollar(ctx context.Context) (*model.Dollar, error) {
+	return dolars.CreateDollarResolver(r.DolarRepository)
 }
 
 // GetDolar is the resolver for the getDolar field.
-func (r *queryResolver) GetDolar(ctx context.Context, date string) (*model.Dolar, error) {
+func (r *queryResolver) GetDollar(ctx context.Context, date string) (*model.Dollar, error) {
 	panic(fmt.Errorf("not implemented: GetDolar - getDolar"))
 }
 
 // GetDolarInDateRange is the resolver for the getDolarInDateRange field.
-func (r *queryResolver) GetDolarInDateRange(ctx context.Context, startDate string, endDate string) ([]*model.Dolar, error) {
+func (r *queryResolver) GetDollarInDateRange(ctx context.Context, startDate string, endDate string) ([]*model.Dollar, error) {
 	panic(fmt.Errorf("not implemented: GetDolarInDateRange - getDolarInDateRange"))
 }
 
 // GetHistoricalDolar is the resolver for the getHistoricalDolar field.
-func (r *queryResolver) GetHistoricalDolar(ctx context.Context) ([]*model.Dolar, error) {
+func (r *queryResolver) GetHistoricalDollar(ctx context.Context) ([]*model.Dollar, error) {
 	panic(fmt.Errorf("not implemented: GetHistoricalDolar - getHistoricalDolar"))
 }

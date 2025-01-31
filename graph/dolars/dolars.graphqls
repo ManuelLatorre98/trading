@@ -1,16 +1,17 @@
-type Dolar {
-  dolar_date: String
-  price_blue: Float
-  price_official: Float
-  price_mep: Float
+type Dollar {
+  dollar_id: Int
+  dollar_date: String
+  dollar_type: String
+  buy_price: Float
+  sell_price: Float
 }
 
 extend type Query {
-  getDolar(date: String!): Dolar
-  getDolarInDateRange(startDate: String!, endDate: String!): [Dolar]
-  getHistoricalDolar: [Dolar]
+  getDollar(date: String!): Dollar
+  getDollarInDateRange(startDate: String!, endDate: String!): [Dollar]
+  getHistoricalDollar: [Dollar]
 }
 
 extend type Mutation {
-  createDolar: Dolar
+  createDollar: Dollar
 }

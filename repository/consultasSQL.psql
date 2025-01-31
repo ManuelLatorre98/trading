@@ -44,16 +44,23 @@ CREATE TABLE buy_orders(
 );
 
 CREATE TABLE dollars (
-    dollar_type VARCHAR(30) PRIMARY KEY,
+    dollar_id SERIAL PRIMARY KEY,
+    dollar_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    dollar_type VARCHAR(30),
     sell_price FLOAT NOT NULL,
     buy_price FLOAT NOT NULL
 );
 
 CREATE TABLE has_dollars (
-    dollar_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    dollar_id INTEGER,
     id_buy_order INTEGER,
-    dollar_type VARCHAR(30),
-    PRIMARY KEY (dollar_date, id_buy_order, dollar_type)
+    FOREIGN KEY (dollar_id) REFERENCES dollars (dollar_id)
+        ON UPDATE CASCADE
+        on DELETE RESTRICT,
+    FOREIGN KEY (id_buy_order) REFERENCES buy_orders (id_buy_order)
+        ON UPDATE CASCADE
+        on DELETE RESTRICT,
+    PRIMARY KEY(dollar_id, id_buy_order)
 );
 
 CREATE TABLE order_has_tickers(

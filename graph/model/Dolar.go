@@ -2,15 +2,16 @@ package model
 
 import "time"
 
-type DolarModel struct {
-	DolarDate     time.Time `json:"dolarDate"`
-	PriceBlue     float32   `json:"priceBlue"`
-	PriceOfficial float32   `json:"priceOfficial"`
-	PriceMep      float32   `json:"priceMep"`
+type DollarModel struct {
+	DolarId   int32     `json:"id"`
+	DolarDate time.Time `json:"dolarDate"`
+	DolarType string    `json:"dolarType"`
+	BuyPrice  float32   `json:"buyPrice"`
+	SellPrice float32   `json:"sellPrice"`
 }
 
-type DolarInput struct {
-	PriceBlue     float32 `json:"priceBlue"`
-	PriceOfficial float32 `json:"priceOfficial"`
-	PriceMep      float32 `json:"priceMep"`
+type DollarInput struct {
+	DolarType string  `json:"dolarType"`
+	BuyPrice  float32 `json:"buyPrice"`
+	SellPrice float32 `json:"sellPrice"`
 }

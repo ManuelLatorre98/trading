@@ -3,8 +3,9 @@ package dolars
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"manulatorre98/trading/customErrors"
 	"manulatorre98/trading/graph/model"
-	"manulatorre98/trading/repository/dolarRepository"
+	"manulatorre98/trading/repository/dollarRepository"
 	"net/http"
 )
 
@@ -13,8 +14,8 @@ type DolarScraped struct {
 	Venta  string `json:"venta"`
 }
 
-func scrapPage(url string) {
-	dolarMap := make(map[string]DolarScraped)
+func scrapPage(url string) (map[string]*DolarScraped, error) {
+	dolarMap := make(map[string]*DolarScraped)
 	res, err := http.Get(url)
 	if err != nil {
 		fmt.Println(err)
@@ -44,7 +45,7 @@ func scrapPage(url string) {
 		venta := s.Find(".venta .val").Text()
 		// Filtrar solo los títulos específicos
 		if isValidTitle(title, validTitles) {
-			dolarMap[title] = DolarScraped{
+			dolarMap[title] = &DolarScraped{
 				Compra: compra,
 				Venta:  venta,
 			}
@@ -52,7 +53,7 @@ func scrapPage(url string) {
 	})
 
 	// Print the structured data
-	fmt.Printf("Dolar data: %+v\n", dolarMap)
+	return dolarMap, nil
 }
 
 func isValidTitle(title string, validTitles []string) bool {
@@ -63,12 +64,15 @@ func isValidTitle(title string, validTitles []string) bool {
 	}
 	return false
 }
-func CreateDolarResolver(repo dolarRepository.DolarRepository) (*model.Dolar, error) {
+func CreateDollarResolver(repo dollarRepository.DollarRepository) (*model.Dollar, error) {
 	scrapPage("https://www.dolarhoy.com/")
-	/*	dolar := &model.DolarInput{15, 65435, 3453}
-		newDolar, err := repo.CreateDolar(dolar)
-		if err != nil {
-			return nil, fmt.Errorf(customErrors.ErrInternalServer)
-		}*/
-	return nil, nil
+	//get ALL DOLLARS IN DATE
+	//IF MISSING ONE INSERT IT
+
+	dollar := &model.DollarInput{"MEP", 65435, 3453}
+	newDolar, err := repo.CreateDollar(dollar)
+	if err != nil {
+		return nil, fmt.Errorf(customErrors.ErrInternalServer)
+	}
+	return newDolar, nil
 }
